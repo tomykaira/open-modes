@@ -10,6 +10,15 @@ Three most used actions in development are opening a file, searching a text in t
 
 A programming language (or framework) specific open mode provides easy way to do them.
 
+Requirements
+------------
+
+- elscreen (for open a file)
+- bundler (for rackup)
+
+This needs [elscreen](http://www.morishima.net/~naoto/elscreen-en/?lang=en) to open a file (always create a new screen).
+If you are not using elscreen, change om-anything-c-open-candidate to match your needs.
+
 How to Use
 ----------
 
