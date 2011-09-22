@@ -66,9 +66,14 @@
 
 (defun rack-open-rackup ()
   (interactive)
-  (if (get-process rack-open-process-name)
-      (rack-open-rack-stop))
-  (start-process rack-open-process-name "*rackup*" rack-open-process-path "exec" "rackup" (concat (rack-open-root) "config.ru")))
+  (let ((buffer-name "*rackup*"))
+    (if (get-process rack-open-process-name)
+        (rack-open-rack-stop))
+    (save-current-buffer
+      (set-buffer buffer-name)
+      (erase-buffer)
+      (message "Starting Rack...")
+      (start-process rack-open-process-name buffer-name rack-open-process-path "exec" "rackup" (concat (rack-open-root) "config.ru")))))
 
 (defun rack-open-rack-stop ()
   (interactive)
