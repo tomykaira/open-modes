@@ -59,9 +59,20 @@
 	 sources)
 	(reverse sources)))
 
+;; elscreen extension
+(defun elscreen-find-screen-by-file-path(PATH)
+  (catch 'screen
+    (elscreen-find-screen
+     `(lambda (screen)
+        (elscreen-goto-internal screen)
+        (walk-windows
+         '(lambda (x)
+            (if (string= PATH (buffer-file-name (window-buffer x)))
+                (throw 'screen screen))) nil)))))
+
 (defun om-anything-c-open-candidate(candidate)
   (let* ((existing-screen
-      (first (elscreen-find-screens-by-buffer (car (last (split-string candidate "/")))))))
+      (first (elscreen-find-screen-by-file-path candidate))))
   (if existing-screen
       (elscreen-goto existing-screen)
     (if (fboundp 'elscreen-create)
