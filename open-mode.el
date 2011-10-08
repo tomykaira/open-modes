@@ -71,8 +71,7 @@
                 (throw 'screen screen))) nil)))))
 
 (defun om-anything-c-open-candidate(candidate)
-  (let* ((existing-screen
-      (first (elscreen-find-screen-by-file-path candidate))))
+  (let* ((existing-screen (elscreen-find-screen-by-file-path candidate)))
   (if existing-screen
       (elscreen-goto existing-screen)
     (if (fboundp 'elscreen-create)
