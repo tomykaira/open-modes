@@ -72,12 +72,16 @@
 
 (defun om-anything-c-open-candidate(candidate)
   (let* ((existing-screen (elscreen-find-screen-by-file-path candidate)))
-  (if existing-screen
-      (elscreen-goto existing-screen)
-    (if (fboundp 'elscreen-create)
-        (elscreen-create)
-      (delete-other-windows))
-    (split-window-horizontally)
-    (find-file candidate))))
+    (cond
+     (existing-screen
+      (elscreen-goto existing-screen))
+     ((string= (buffer-name) "*scratch*")
+      (find-file candidate))
+     ((or (other-window 1) (string= (buffer-name) "*scratch*"))
+      (find-file candidate))
+     ((fboundp 'elscreen-create)
+      (elscreen-create)
+      (split-window-horizontally)
+      (find-file candidate)))))
 
 (provide 'open-mode)
