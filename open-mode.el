@@ -33,25 +33,39 @@
          (append grep-find-ignored-directories ignored-dirs)))
     (rgrep query "*.*" (funcall getroot))))
 
+(defun om--directory-files-recursive (dir)
+  (if (file-directory-p dir)
+      (let (files)
+        (mapcar
+         (lambda (child)
+           (unless (string-match "\\.\\.?$" child)
+             (if (file-directory-p child)
+                 (setq files (append files (om--directory-files-recursive child)))
+               (setq files (cons child files)))))
+         (directory-files dir t))
+        files)
+    (list dir)))
+
 (defun om-make-anything-sources (getroot ignored-dir-list)
   "Make anything sources for open mode"
   (let ((root (funcall getroot))
         (ignored-dir-list
          (append (list "\\.\\.?$" "\\.git$")
                  (mapcar (lambda (str) (regexp-quote str)) ignored-dir-list)))
-    sources root-files path ignoredp)
+    sources root-files path)
     (mapcar (lambda (file)
-              (setq ignoredp nil)
-              (dolist (regex ignored-dir-list ignoredp)
-                (setq ignoredp (or ignoredp (string-match regex file))))
-              (setq path (concat root file))
-              (if (and (not ignoredp) (file-directory-p path))
-                  (push
-                   `((name . ,file)
-                     (candidates . ,(ro-directory-files-recursive path))
-                     (action . om-anything-c-open-candidate))
-                   sources)
-                (push path root-files)))
+              (catch 'ignored
+                (dolist (regex ignored-dir-list)
+                  (if (string-match regex file)
+                      (throw 'ignored t)))
+                (setq path (concat root file))
+                (if (file-directory-p path)
+                    (push
+                     `((name . ,file)
+                       (candidates . ,(om--directory-files-recursive path))
+                       (action . om-anything-c-open-candidate))
+                     sources)
+                  (push path root-files))))
             (directory-files root nil))
   (push
    `((name . "root")
