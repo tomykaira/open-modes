@@ -1,6 +1,6 @@
 ;;; open-mode.el --- provide functions for *-open-mode
 
-;;; Version 0.1 - 2011-9-14
+;;; Version 0.2 - 2012-1-8
 ;;; Copyright (C) 2011 tomykaira (tomykaira@gmail.com)
 ;;;
 ;;; Author: tomykaira -- tomykaira@gmail.com
@@ -18,8 +18,9 @@
 ;; This is not expected to use by itself.
 
 (defun om-project-root (rootp &optional dir)
-  (or dir (setq dir (or (buffer-file-name)
-                        (concat list-buffers-directory))))
+  (setq dir (or dir
+                (buffer-file-name)
+                (concat list-buffers-directory))))
   (if (funcall rootp dir)
       dir
     (let ((new-dir (expand-file-name (file-name-as-directory "..") dir)))
@@ -29,8 +30,8 @@
 
 (defun om-grep-project (getroot query ignored-dirs)
   (let ((grep-find-ignored-directories
-				 (append grep-find-ignored-directories ignored-dirs)))
-		(rgrep query "*.*" (funcall getroot))))
+         (append grep-find-ignored-directories ignored-dirs)))
+    (rgrep query "*.*" (funcall getroot))))
 
 (defun om-make-anything-sources (getroot ignored-dir-list)
   "Make anything sources for open mode"
@@ -43,21 +44,21 @@
               (setq ignoredp nil)
               (dolist (regex ignored-dir-list ignoredp)
                 (setq ignoredp (or ignoredp (string-match regex file))))
-							(setq path (concat root file))
-							(if (and (not ignoredp) (file-directory-p path))
-									(push
-									 `((name . ,file)
-										 (candidates . ,(ro-directory-files-recursive path))
-										 (action . om-anything-c-open-candidate))
-									 sources)
-								(push path root-files)))
-						(directory-files root nil))
-	(push
-	 `((name . "root")
-	   (candidates . ,root-files)
-	   (action . om-anything-c-open-candidate))
-	 sources)
-	(reverse sources)))
+              (setq path (concat root file))
+              (if (and (not ignoredp) (file-directory-p path))
+                  (push
+                   `((name . ,file)
+                     (candidates . ,(ro-directory-files-recursive path))
+                     (action . om-anything-c-open-candidate))
+                   sources)
+                (push path root-files)))
+            (directory-files root nil))
+  (push
+   `((name . "root")
+     (candidates . ,root-files)
+     (action . om-anything-c-open-candidate))
+   sources)
+  (reverse sources)))
 
 ;; elscreen extension
 (defun elscreen-find-screen-by-file-path(PATH)
@@ -83,5 +84,36 @@
       (elscreen-create)
       (split-window-horizontally)
       (find-file candidate)))))
+
+(defmacro define-open-mode (mode)
+  (defun --sym (suffix)
+    (intern (concat mode "-open-" suffix)))
+  `(progn
+     (defun ,(--sym "root") ()
+       (om-project-root ',(--sym "root-p")))
+     (defun ,(--sym "anything")()
+       (interactive)
+       (anything-other-buffer (om-make-anything-sources ',(--sym "root") ,(--sym "ignored")) nil))
+     (defun ,(--sym "grep-project") (query)
+       (interactive "s")
+       (om-grep-project ',(--sym "root") query ,(--sym "ignored")))
+     (easy-mmode-define-minor-mode
+      ,(--sym "mode") (concat mode "-open minor mode")nil " po"
+      (("\C-c\C-r" . ,(--sym "anything"))
+       ("\C-c\C-b" . ,(--sym "grep-project"))))
+     (defun ,(--sym "launch") ()
+       (interactive)
+       (if (,(--sym "root"))
+           (,(--sym "mode") 1)
+         (if (fboundp ,(--sym "mode"))
+             (,(--sym "mode") -1))))
+     (defun ,(--sym "activate") ()
+       (interactive)
+       (add-hook 'find-file-hook ',(--sym "launch"))
+       (add-hook 'dired-after-readin-hook ',(--sym "launch")))
+     (defun ,(--sym "deactivate") ()
+       (interactive)
+       (remove-hook 'find-file-hook ',(--sym "launch"))
+       (remove-hook 'dired-after-readin-hook ',(--sym "launch")))))
 
 (provide 'open-mode)

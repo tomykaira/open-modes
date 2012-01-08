@@ -26,50 +26,12 @@ staging server directory")
 
 (require 'open-mode)
 
-(easy-mmode-define-minor-mode php-open-mode
-"Rack open mode easily opens files in the temporary Rack project directory."
-  nil
-  " po"
-  '(("\C-c\C-r" . php-open-anything)
-    ("\C-c\C-b" . php-open-grep-project)
-    ("\C-c\C-d" . php-open-upload)))
+(defun php-open-root-p (current-path)
+  (not (not (member-if
+   '(lambda (pair) (string= (concat (car pair) "/") current-path))
+   php-open-directory-server-pairs))))
 
-(defun php-open-directory-server-pair (current-path)
-  (car (member-if
-        '(lambda (pair) (string-match-p (car pair) current-path))
-        php-open-directory-server-pairs)))
-
-(defun php-open-root ()
-  (let* ((file (or (buffer-file-name)
-                  (concat list-buffers-directory)))
-         (pair (php-open-directory-server-pair file)))
-    (cond (pair (concat (car pair) "/"))
-          (t nil))))
-
-(defun php-open-grep-project (query)
-  (interactive "s")
-  (om-grep-project 'php-open-root query php-open-ignored))
-
-(defun php-open-launch ()
-  (interactive)
-  (let* ((root (php-open-root)))
-  (if root (php-open-mode t)
-    (if (and (fboundp php-open-mode) php-open-mode)
-      (php-open-mode)))))
-
-(defun php-open-anything()
-  (interactive)
-  (anything-other-buffer (om-make-anything-sources 'php-open-root php-open-ignored) nil))
-
-(defun php-open-activate ()
-  (interactive)
-  (add-hook 'find-file-hook 'php-open-launch)
-  (add-hook 'dired-after-readin-hook 'php-open-launch))
-
-(defun php-open-deactivate ()
-  (interactive)
-  (remove-hook 'find-file-hook 'php-open-launch)
-  (remove-hook 'dired-after-readin-hook 'php-open-launch))
+(define-open-mode "php")
 
 (defun php-open-upload ()
   (interactive)
@@ -78,5 +40,7 @@ staging server directory")
     (if path-pair
         (shell-command (concat php-open-rsync-command (car path-pair) "/* " (cdr path-pair)))
       (message "You are not in a PHP directory"))))
+
+(define-key php-open-mode-map "\C-c\C-d" 'php-open-upload)
 
 (provide 'php-open-mode)
