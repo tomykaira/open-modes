@@ -17,10 +17,13 @@
 
 ;; This is not expected to use by itself.
 
+(defvar om--temporary-project-root nil
+  "[internal use] temporary variable: base directory")
+
 (defun om-project-root (rootp &optional dir)
   (setq dir (or dir
                 (buffer-file-name)
-                (concat list-buffers-directory))))
+                (concat list-buffers-directory)))
   (if (funcall rootp dir)
       dir
     (let ((new-dir (expand-file-name (file-name-as-directory "..") dir)))
@@ -46,6 +49,10 @@
         files)
     (list dir)))
 
+(defun om--subdirectory-files (root top)
+  (mapcar (lambda (x) (replace-regexp-in-string (concat "^" root) "" x))
+          (om--directory-files-recursive (concat root top))))
+
 (defun om-make-anything-sources (getroot ignored-dir-list open-method)
   "Make anything sources for open mode"
   (let ((root (funcall getroot))
@@ -53,6 +60,7 @@
          (append (list "\\.\\.?$" "\\.git$")
                  (mapcar (lambda (str) (regexp-quote str)) ignored-dir-list)))
     sources root-files path)
+    (setq om--temporary-project-root root)
     (mapcar (lambda (file)
               (catch 'ignored
                 (dolist (regex ignored-dir-list)
@@ -62,12 +70,12 @@
                 (if (file-directory-p path)
                     (push
                      `((name . ,file)
-                       (candidates . ,(om--directory-files-recursive path))
+                       (candidates . ,(om--subdirectory-files root file))
                        (action . ,(case open-method
                                     ('other-window 'om-anything-c-open-candidate-in-other-window)
                                     ('new-screen 'om-anything-c-open-candidate-in-new-screen))))
                      sources)
-                  (push path root-files))))
+                  (push file root-files))))
             (directory-files root nil))
   (push
    `((name . "root")
@@ -87,14 +95,16 @@
             (if (string= PATH (buffer-file-name (window-buffer x)))
                 (throw 'screen screen))) nil)))))
 
-(defun om-anything-c-open-candidate-in-other-window(candidate)
-  (if (one-window-p)
-      (split-window-horizontally)
-    (other-window 1))
-  (find-file candidate))
+(defun om-anything-c-open-candidate-in-other-window(cand-file)
+  (let ((candidate (concat om--temporary-project-root cand-file)))
+    (if (one-window-p)
+        (split-window-horizontally)
+      (other-window 1))
+    (find-file candidate)))
 
-(defun om-anything-c-open-candidate-in-new-screen(candidate)
-  (let* ((existing-screen (elscreen-find-screen-by-file-path candidate)))
+(defun om-anything-c-open-candidate-in-new-screen(cand-file)
+  (let* ((candidate (concat om--temporary-project-root cand-file))
+         (existing-screen (elscreen-find-screen-by-file-path candidate)))
     (cond
      (existing-screen
       (elscreen-goto existing-screen))
@@ -122,8 +132,8 @@
        (interactive "s")
        (om-grep-project ',(--sym "root") query ,(--sym "ignored")))
      (easy-mmode-define-minor-mode
-      ,(--sym "mode") (concat mode "-open minor mode")nil ""
-      (("\C-c\C-r" . ,(--sym "anything"))
+      ,(--sym "mode") ,(concat mode "-open minor mode")nil ""
+      '(("\C-c\C-r" . ,(--sym "anything"))
        ("\C-c\C-b" . ,(--sym "grep-project"))))
      (defun ,(--sym "launch") ()
        (interactive)
