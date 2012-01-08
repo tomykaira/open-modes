@@ -122,7 +122,7 @@
        (interactive "s")
        (om-grep-project ',(--sym "root") query ,(--sym "ignored")))
      (easy-mmode-define-minor-mode
-      ,(--sym "mode") (concat mode "-open minor mode")nil " po"
+      ,(--sym "mode") (concat mode "-open minor mode")nil ""
       (("\C-c\C-r" . ,(--sym "anything"))
        ("\C-c\C-b" . ,(--sym "grep-project"))))
      (defun ,(--sym "launch") ()
