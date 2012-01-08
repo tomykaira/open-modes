@@ -25,7 +25,7 @@
 
 (require 'open-mode)
 
-(defun rack-open-rootp (current-path)
+(defun rack-open-root-p (current-path)
   (file-exists-p (expand-file-name "config.ru" current-path)))
 
 (define-open-mode "rack")

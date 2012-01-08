@@ -19,7 +19,7 @@
 
 (require 'open-mode)
 
-(defun ruby-open-rootp (current-path)
+(defun ruby-open-root-p (current-path)
   (file-exists-p (expand-file-name "Gemfile" current-path)))
 
 (define-open-mode "ruby")
