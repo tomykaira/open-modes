@@ -46,7 +46,7 @@
         files)
     (list dir)))
 
-(defun om-make-anything-sources (getroot ignored-dir-list)
+(defun om-make-anything-sources (getroot ignored-dir-list open-method)
   "Make anything sources for open mode"
   (let ((root (funcall getroot))
         (ignored-dir-list
@@ -63,7 +63,9 @@
                     (push
                      `((name . ,file)
                        (candidates . ,(om--directory-files-recursive path))
-                       (action . om-anything-c-open-candidate))
+                       (action . ,(case open-method
+                                    ('other-window 'om-anything-c-open-candidate-in-other-window)
+                                    ('new-screen 'om-anything-c-open-candidate-in-new-screen))))
                      sources)
                   (push path root-files))))
             (directory-files root nil))
@@ -85,7 +87,13 @@
             (if (string= PATH (buffer-file-name (window-buffer x)))
                 (throw 'screen screen))) nil)))))
 
-(defun om-anything-c-open-candidate(candidate)
+(defun om-anything-c-open-candidate-in-other-window(candidate)
+  (if (one-window-p)
+      (split-window-horizontally)
+    (other-window 1))
+  (find-file candidate))
+
+(defun om-anything-c-open-candidate-in-new-screen(candidate)
   (let* ((existing-screen (elscreen-find-screen-by-file-path candidate)))
     (cond
      (existing-screen
@@ -105,9 +113,11 @@
   `(progn
      (defun ,(--sym "root") ()
        (om-project-root ',(--sym "root-p")))
-     (defun ,(--sym "anything")()
-       (interactive)
-       (anything-other-buffer (om-make-anything-sources ',(--sym "root") ,(--sym "ignored")) nil))
+     (defun ,(--sym "anything") (args)
+       (interactive "P")
+       (anything-other-buffer
+        (om-make-anything-sources ',(--sym "root") ,(--sym "ignored") (if args 'other-window 'new-screen))
+        nil))
      (defun ,(--sym "grep-project") (query)
        (interactive "s")
        (om-grep-project ',(--sym "root") query ,(--sym "ignored")))
