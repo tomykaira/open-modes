@@ -59,6 +59,9 @@
         (ignored-dir-list
          (append (list "\\.\\.?$" "\\.git$")
                  (mapcar (lambda (str) (regexp-quote str)) ignored-dir-list)))
+        (action (case open-method
+                  ('other-window 'om-anything-c-open-candidate-in-other-window)
+                  ('new-screen 'om-anything-c-open-candidate-in-new-screen)))
     sources root-files path)
     (setq om--temporary-project-root root)
     (mapcar (lambda (file)
@@ -71,16 +74,14 @@
                     (push
                      `((name . ,file)
                        (candidates . ,(om--subdirectory-files root file))
-                       (action . ,(case open-method
-                                    ('other-window 'om-anything-c-open-candidate-in-other-window)
-                                    ('new-screen 'om-anything-c-open-candidate-in-new-screen))))
+                       (action . ,action))
                      sources)
                   (push file root-files))))
             (directory-files root nil))
   (push
    `((name . "root")
      (candidates . ,root-files)
-     (action . om-anything-c-open-candidate))
+     (action . ,action))
    sources)
   (reverse sources)))
 
