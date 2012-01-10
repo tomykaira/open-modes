@@ -26,6 +26,11 @@ staging server directory")
 
 (require 'open-mode)
 
+(defun php-open-directory-server-pair (current-path)
+  (car (member-if
+        '(lambda (pair) (string-match-p (car pair) current-path))
+        php-open-directory-server-pairs)))
+
 (defun php-open-root-p (current-path)
   (not (not (member-if
    '(lambda (pair) (string= (concat (car pair) "/") current-path))
