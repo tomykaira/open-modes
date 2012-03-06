@@ -41,7 +41,7 @@
       (let (files)
         (mapcar
          (lambda (child)
-           (unless (string-match "\\.\\.?$" child)
+           (unless (or (string-match "\\.\\.?$" child) (string-match "\\.svn$" child))
              (if (file-directory-p child)
                  (setq files (append files (om--directory-files-recursive child)))
                (setq files (cons child files)))))
@@ -57,7 +57,7 @@
   "Make anything sources for open mode"
   (let ((root (funcall getroot))
         (ignored-dir-list
-         (append (list "\\.\\.?$" "\\.git$")
+         (append (list "\\.\\.?$" "\\.git$" "\\.svn$")
                  (mapcar (lambda (str) (regexp-quote str)) ignored-dir-list)))
         (action (case open-method
                   ('other-window 'om-anything-c-open-candidate-in-other-window)
