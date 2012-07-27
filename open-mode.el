@@ -57,7 +57,7 @@
   "Make anything sources for open mode"
   (let ((root (funcall getroot))
         (ignored-dir-list
-         (append (list "\\.\\.?$" "\\.git$" "\\.svn$")
+         (append (list "^\\." "\\.\\.?$" "\\.git$" "\\.svn$")
                  (mapcar (lambda (str) (regexp-quote str)) ignored-dir-list)))
         (action (case open-method
                   ('other-window 'om-anything-c-open-candidate-in-other-window)
