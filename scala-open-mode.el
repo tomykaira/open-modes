@@ -21,7 +21,8 @@
 
 (defun scala-open-root-p (current-path)
   (or (file-exists-p (expand-file-name "build.sbt" current-path))
-      (file-exists-p (expand-file-name "Build.sbt" current-path))))
+      (file-exists-p (expand-file-name "Build.sbt" current-path))
+      (file-exists-p (expand-file-name ".ensime" current-path))))
 
 (define-open-mode "scala")
 
