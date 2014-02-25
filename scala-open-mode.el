@@ -22,7 +22,8 @@
 (defun scala-open-root-p (current-path)
   (or (file-exists-p (expand-file-name "build.sbt" current-path))
       (file-exists-p (expand-file-name "Build.sbt" current-path))
-      (file-exists-p (expand-file-name ".ensime" current-path))))
+      (file-exists-p (expand-file-name ".ensime" current-path))
+      (file-exists-p (expand-file-name "Build.scala" (concat current-path "project")))))
 
 (define-open-mode "scala")
 
@@ -37,7 +38,7 @@
           (car (delq nil (mapcar (lambda (s) (and (numberp (string-match (regexp-quote fn) s)) s)) files)))))))
 
 (defun scala-open-anything-c-open-candidate-in-new-screen (cand-file)
-  (let* ((candidate (concat om--temporary-project-root cand-file)) 
+  (let* ((candidate (concat om--temporary-project-root cand-file))
          (existing-screen (elscreen-find-screen-by-file-path candidate)))
     (cond
      (existing-screen
