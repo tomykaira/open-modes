@@ -29,7 +29,7 @@
          (cand-file-name (car cand-frags)))
     (if (string-match "\.rb$" cand-file-name)
         (let* ((spec-name (concat (car (split-string cand-file-name "\\.")) "_spec.rb"))
-               (files (om--subdirectory-files om--temporary-project-root "spec"))
+               (files (om--subdirectory-files om--temporary-project-root ruby-open-ignored "spec"))
                (match-list
                 (mapcar (lambda (path)
                           (let* ((spec-frags (nreverse (split-string path "/")))

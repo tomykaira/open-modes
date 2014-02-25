@@ -15,7 +15,7 @@
 ;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;;; GNU General Public License for more details.
 
-(defvar scala-open-ignored '("target" "project"))
+(defvar scala-open-ignored '("target" "project" ".idea" ".idea_modules" "out"))
 
 (require 'open-mode)
 
@@ -33,7 +33,7 @@
     (if (string-match "\.scala$" cand-file-name)
         (let ((fn (concat "/" (car (split-string cand-file-name "\\."))
                          "Spec.scala"))
-              (files (om--subdirectory-files om--temporary-project-root "src/test")))
+              (files (om--subdirectory-files om--temporary-project-root scala-open-ignored "src/test")))
           (message fn)
           (car (delq nil (mapcar (lambda (s) (and (numberp (string-match (regexp-quote fn) s)) s)) files)))))))
 

@@ -17,6 +17,8 @@
 
 ;; This is not expected to use by itself.
 
+(eval-when-compile (require 'cl))
+
 (defvar om--temporary-project-root nil
   "[internal use] temporary variable: base directory")
 
@@ -36,22 +38,25 @@
          (append grep-find-ignored-directories ignored-dirs)))
     (rgrep query "*.*" (funcall getroot))))
 
-(defun om--directory-files-recursive (dir)
+(defun om--directory-files-recursive (ignored-dir-list dir)
   (if (file-directory-p dir)
       (let (files)
         (mapcar
          (lambda (child)
-           (unless (or (string-match "\\.\\.?$" child) (string-match "\\.svn$" child))
+           (unless (om--is-ignored ignored-dir-list dir)
              (if (file-directory-p child)
-                 (setq files (append files (om--directory-files-recursive child)))
+                 (setq files (append files (om--directory-files-recursive ignored-dir-list child)))
                (setq files (cons child files)))))
          (directory-files dir t))
         files)
     (list dir)))
 
-(defun om--subdirectory-files (root top)
+(defun om--subdirectory-files (root ignored-dir-list top)
   (mapcar (lambda (x) (replace-regexp-in-string (concat "^" root) "" x))
-          (om--directory-files-recursive (concat root top))))
+          (om--directory-files-recursive ignored-dir-list (concat root top))))
+
+(defun om--is-ignored (ignored-name-list file)
+  (find-if (lambda (regex) (string-match regex file)) ignored-name-list))
 
 (defun om-make-anything-sources (getroot ignored-dir-list open-method)
   "Make anything sources for open mode"
@@ -65,15 +70,12 @@
     sources root-files path)
     (setq om--temporary-project-root root)
     (mapcar (lambda (file)
-              (catch 'ignored
-                (dolist (regex ignored-dir-list)
-                  (if (string-match regex file)
-                      (throw 'ignored t)))
+              (unless (om--is-ignored ignored-dir-list file)
                 (setq path (concat root file))
                 (if (file-directory-p path)
                     (push
                      `((name . ,file)
-                       (candidates . ,(om--subdirectory-files root file))
+                       (candidates . ,(om--subdirectory-files root ignored-dir-list file))
                        (action . ,action))
                      sources)
                   (push file root-files))))
