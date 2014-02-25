@@ -15,7 +15,7 @@
 ;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;;; GNU General Public License for more details.
 
-(defvar scala-open-ignored '("target" "project" ".idea" ".idea_modules" "out"))
+(defvar scala-open-ignored '("target" ".idea" ".idea_modules" "out"))
 
 (require 'open-mode)
 
