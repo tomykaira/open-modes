@@ -40,7 +40,7 @@
 
 (defun om--directory-files-recursive (ignored-dir-list dir)
   (if (file-directory-p dir)
-      (let (files)
+      (let ((ignored-dir-list (om--local-ignored-dir-list ignored-dir-list)) files)
         (mapcar
          (lambda (child)
            (unless (om--is-ignored ignored-dir-list dir)
@@ -58,12 +58,14 @@
 (defun om--is-ignored (ignored-name-list file)
   (find-if (lambda (regex) (string-match regex file)) ignored-name-list))
 
+(defun om--local-ignored-dir-list (ignored-dir-list)
+  (append (list "^\\." "\\.\\.?$" "\\.git$" "\\.svn$")
+          (mapcar (lambda (str) (regexp-quote str)) ignored-dir-list)))
+
 (defun om-make-anything-sources (getroot ignored-dir-list open-method)
   "Make anything sources for open mode"
   (let ((root (funcall getroot))
-        (ignored-dir-list
-         (append (list "^\\." "\\.\\.?$" "\\.git$" "\\.svn$")
-                 (mapcar (lambda (str) (regexp-quote str)) ignored-dir-list)))
+        (ignored-dir-list (om--local-ignored-dir-list ignored-dir-list))
         (action (case open-method
                   ('other-window 'om-anything-c-open-candidate-in-other-window)
                   ('new-screen 'om-anything-c-open-candidate-in-new-screen)))
