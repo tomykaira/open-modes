@@ -62,13 +62,13 @@
   (append (list "^\\." "\\.\\.?$" "\\.git$" "\\.svn$")
           (mapcar (lambda (str) (regexp-quote str)) ignored-dir-list)))
 
-(defun om-make-anything-sources (getroot ignored-dir-list open-method)
-  "Make anything sources for open mode"
+(defun om-make-helm-sources (getroot ignored-dir-list open-method)
+  "Make helm sources for open mode"
   (let ((root (funcall getroot))
         (ignored-dir-list (om--local-ignored-dir-list ignored-dir-list))
         (action (case open-method
-                  ('other-window 'om-anything-c-open-candidate-in-other-window)
-                  ('new-screen 'om-anything-c-open-candidate-in-new-screen)))
+                  ('other-window 'om-helm-c-open-candidate-in-other-window)
+                  ('new-screen 'om-helm-c-open-candidate-in-new-screen)))
     sources root-files path)
     (setq om--temporary-project-root root)
     (mapcar (lambda (file)
@@ -100,14 +100,14 @@
             (if (string= PATH (buffer-file-name (window-buffer x)))
                 (throw 'screen screen))) nil)))))
 
-(defun om-anything-c-open-candidate-in-other-window(cand-file)
+(defun om-helm-c-open-candidate-in-other-window(cand-file)
   (let ((candidate (concat om--temporary-project-root cand-file)))
     (if (one-window-p)
         (split-window-horizontally)
       (other-window 1))
     (find-file candidate)))
 
-(defun om-anything-c-open-candidate-in-new-screen(cand-file)
+(defun om-helm-c-open-candidate-in-new-screen(cand-file)
   (let* ((candidate (concat om--temporary-project-root cand-file))
          (existing-screen (elscreen-find-screen-by-file-path candidate)))
     (cond
@@ -128,17 +128,17 @@
   `(progn
      (defun ,(--sym "root") ()
        (om-project-root ',(--sym "root-p")))
-     (defun ,(--sym "anything") (args)
+     (defun ,(--sym "helm") (args)
        (interactive "P")
-       (anything-other-buffer
-        (om-make-anything-sources ',(--sym "root") ,(--sym "ignored") (if args 'other-window 'new-screen))
+       (helm-other-buffer
+        (om-make-helm-sources ',(--sym "root") ,(--sym "ignored") (if args 'other-window 'new-screen))
         nil))
      (defun ,(--sym "grep-project") (query)
        (interactive "s")
        (om-grep-project ',(--sym "root") query ,(--sym "ignored")))
      (easy-mmode-define-minor-mode
       ,(--sym "mode") ,(concat mode "-open minor mode")nil ""
-      '(("\C-c\C-r" . ,(--sym "anything"))
+      '(("\C-c\C-r" . ,(--sym "helm"))
        ("\C-c\C-b" . ,(--sym "grep-project"))))
      (defun ,(--sym "launch") ()
        (interactive)

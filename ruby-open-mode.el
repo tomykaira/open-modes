@@ -44,7 +44,7 @@
           (unless (= (cdr result) 0)
               (car result))))))
 
-(defun ruby-open-anything-c-open-candidate-in-new-screen (cand-file)
+(defun ruby-open-helm-c-open-candidate-in-new-screen (cand-file)
   (let* ((candidate (concat om--temporary-project-root cand-file))
          (existing-screen (elscreen-find-screen-by-file-path candidate)))
     (cond
@@ -59,12 +59,12 @@
           (other-window 1)
           (find-file (concat om--temporary-project-root cand-spec))))))))
 
-(defun ruby-open-anything (args)
+(defun ruby-open-helm (args)
   (interactive "P")
-  (letf (((symbol-function 'om-anything-c-open-candidate-in-new-screen)
-          (symbol-function 'ruby-open-anything-c-open-candidate-in-new-screen)))
-    (anything-other-buffer
-     (om-make-anything-sources 'ruby-open-root ruby-open-ignored (if args 'other-window 'new-screen))
+  (letf (((symbol-function 'om-helm-c-open-candidate-in-new-screen)
+          (symbol-function 'ruby-open-helm-c-open-candidate-in-new-screen)))
+    (helm-other-buffer
+     (om-make-helm-sources 'ruby-open-root ruby-open-ignored (if args 'other-window 'new-screen))
      nil)))
 
 (provide 'ruby-open-mode)

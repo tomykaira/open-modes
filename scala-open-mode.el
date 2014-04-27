@@ -37,7 +37,7 @@
           (message fn)
           (car (delq nil (mapcar (lambda (s) (and (numberp (string-match (regexp-quote fn) s)) s)) files)))))))
 
-(defun scala-open-anything-c-open-candidate-in-new-screen (cand-file)
+(defun scala-open-helm-c-open-candidate-in-new-screen (cand-file)
   (let* ((candidate (concat om--temporary-project-root cand-file))
          (existing-screen (elscreen-find-screen-by-file-path candidate)))
     (cond
@@ -52,12 +52,12 @@
           (other-window 1)
           (find-file (concat om--temporary-project-root cand-spec))))))))
 
-(defun scala-open-anything (args)
+(defun scala-open-helm (args)
   (interactive "P")
-  (letf (((symbol-function 'om-anything-c-open-candidate-in-new-screen)
-          (symbol-function 'scala-open-anything-c-open-candidate-in-new-screen)))
-    (anything-other-buffer
-     (om-make-anything-sources 'scala-open-root scala-open-ignored (if args 'other-window 'new-screen))
+  (letf (((symbol-function 'om-helm-c-open-candidate-in-new-screen)
+          (symbol-function 'scala-open-helm-c-open-candidate-in-new-screen)))
+    (helm-other-buffer
+     (om-make-helm-sources 'scala-open-root scala-open-ignored (if args 'other-window 'new-screen))
      nil)))
 
 (provide 'scala-open-mode)
